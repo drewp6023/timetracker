@@ -260,27 +260,27 @@ function status()
 
 function fix()
 {
-	
+
 }
 
 function usage() 
 {
-	print<<<END
+print <<<END
 
-	*-*-*-* Timetracker *-*-*-*
+*-*-*-* Timetracker *-*-*-*
 
-	Usage: timetracker [command] [arguments]
-	where [command] is one of:
+Usage: timetracker [command] [arguments]
+where [command] is one of:
 
-	a | add - add a new task to the database
-	b | brief - show brief summary of all saved time
-	c | clear - clear all saved time data
-	s | start [task] - start timing against [task]
-	x | stop - stop all clocks
-	t | status - show current status
-	f | fix - move time from one task to another
-	m | summary - show summary of all saved time
-	u | upload - upload saved time to online Clockr system
+a | add - add a new task to the database
+b | brief - show brief summary of all saved time
+c | clear - clear all saved time data
+s | start [task] - start timing against [task]
+x | stop - stop all clocks
+t | status - show current status
+f | fix - move time from one task to another
+m | summary - show summary of all saved time
+u | upload - upload saved time to online timetracker system
 
-	END;	
+END;
 }
