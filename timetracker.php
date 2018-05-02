@@ -1,0 +1,286 @@
+#!/usr/bin/php -q
+<?php
+
+$settings = [
+	"file" => [
+		"home" => "/home/projects/timetracker",
+		"time_file" => $settings['files']['home'] . '/.timesheet'
+	],
+	"mysql" => [
+		"username" => "root",
+		"password" => "",
+		"database" => "timetracker"
+	],
+];
+
+switch($argv[1])
+{
+  case 'add': # Add a task
+  case 'a':
+
+    add_task(array_slice($argv, 2));
+    break;
+
+  case 'brief': # Show brief summary of all saved time
+  case 'b':
+
+    summary(1);
+    break;
+
+  case 'clear': # Show brief summary of all saved time
+  case 'c':
+
+    clear_times();
+    break;    
+
+  case 'start': # Start timing a task
+  case 's':
+
+    stop();
+    start(array_slice($argv, 2));
+    break;
+
+  case 'stop': # Stop all clocks
+  case 'x':
+
+    stop();
+    break;
+
+  case 'summary': # Show summary of all saved time
+  case 'm':
+
+    summary(3);
+    break;
+
+  case 'upload': # Upload today's time to the server
+  case 'u':
+
+    upload();
+    break;
+
+  default: # Unknown command, so display usage information
+
+    usage();
+    break;
+}
+
+////////////////////
+// BEGIN FUNCTION //
+////////////////////
+
+function start() 
+{
+
+}
+
+function stop() 
+{
+
+}
+
+function upload() 
+{
+
+}
+
+function summary($verbose = 1)
+{
+	$times = get_times();
+}
+
+function add_task()
+{
+
+}
+
+function get_clients()
+{
+
+}
+
+
+function clear_times($file = '', $confirm = true)
+{
+	if (!$file) // No file given, so use default
+	{
+		$file = $settings['file']['time_file'];
+	}
+
+	// Confirm.
+
+	if ($confirm)
+	{
+		print 'Are you sure you want to clear all saved time data? [n] ';
+		fscanf(STDIN, '%c', $in);
+		if ($in != 'y')
+		{
+			return;
+		}
+	}
+
+	if (file_put_contents($file, '') !== false)
+	{
+		event('Cleared all saved time data.');
+	}
+	else
+	{
+		event('Unable to clear data in time file ' . $file . '!', 'error');
+	}
+} // clear_times()
+
+// -------------------------------------------------------------------------------
+//
+// Convert seconds to hours:minutes.
+//
+// Arguments: seconds - the number of seconds
+// Returns: a string formatted as hours:minutes
+//
+// -------------------------------------------------------------------------------
+
+function hms($seconds)
+{
+	return $GLOBALS['use_seconds'] // Use seconds?
+	 ? sprintf('%02d:%02d:%02d', floor($seconds / 3600) , floor(($seconds - floor($seconds / 3600) * 3600) / 60) , $seconds % 60) : sprintf('%02d:%02d', floor($seconds / 3600) , floor($seconds / 60));
+} // hms()
+
+// -------------------------------------------------------------------------------
+//
+// Log something to the screen.
+//
+// Arguments: message - the message to display
+//            level - info, warn, error
+// Returns: text to screen
+//
+// -------------------------------------------------------------------------------
+
+function event($message, $level = 'info')
+{
+	switch ($level)
+	{
+	case 'error':
+		show('ERROR: ' . $message, 'red');
+		exit(1);
+		break;
+
+	case 'warning':
+		show('Warning: ' . $message, 'yellow');
+		break;
+
+	case 'info':
+	default:
+		show($message);
+		break;
+	}
+} // event()
+
+function get_times($file = '')
+{
+	if (!$file) // No file given, so use default
+	{
+		$file = $settings['file']['time_file'];
+	}
+
+	if ($in = @file_get_contents($file))
+	{
+		return (array)unserialize($in);
+	}
+	else
+
+	// Need to create the file?
+
+	{
+		if (file_put_contents($file, '') !== false)
+		{
+			return array();
+		}
+		else
+
+		// Still no joy
+
+		{
+			event('Unable to read or create timetracker save time file ' . $file . '!', 'error');
+		}
+	}
+} // get_times()
+
+
+// -------------------------------------------------------------------------------
+//
+// Set saved times.
+//
+// This will update the data in $time_file.
+//
+// Arguments: time_data - an array of time data
+//            file - the time file
+// Returns: nothing
+//
+// -------------------------------------------------------------------------------
+
+function set_times($time_data, $file = '')
+{
+	if (!$file) // No file given, so use default
+	{
+		$file = $settings['file']['time_file'];
+	}
+
+	if (file_put_contents($file, serialize($time_data)) === false)
+	{
+		event('Unable to save Clockr data to time file ' . $file . '!', 'error');
+	}
+} // set_times()
+
+function show($message, $color = '')
+{
+	$colors = array
+	(
+		'red' => '1;31m',
+		'green' => '1;32m',
+		'blue' => '1;36m',
+		'yellow' => '1;33m',
+		'white' => '1;37m',
+		'end' => '0;39m',
+		'esc' => "\033[",
+	);
+
+	print $color
+	? $colors['esc'] . $colors[$color] . $message .
+	  $colors['esc'] . $colors['end'] . "\n"
+	: $message . "\n";
+}
+
+function clear()
+{
+
+}
+
+function status()
+{
+
+}
+
+function fix()
+{
+	
+}
+
+function usage() 
+{
+	print<<<END
+
+	*-*-*-* Timetracker *-*-*-*
+
+	Usage: timetracker [command] [arguments]
+	where [command] is one of:
+
+	a | add - add a new task to the database
+	b | brief - show brief summary of all saved time
+	c | clear - clear all saved time data
+	s | start [task] - start timing against [task]
+	x | stop - stop all clocks
+	t | status - show current status
+	f | fix - move time from one task to another
+	m | summary - show summary of all saved time
+	u | upload - upload saved time to online Clockr system
+
+	END;	
+}
