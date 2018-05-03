@@ -1,17 +1,20 @@
 #!/usr/bin/php -q
 <?php
 
-$settings = [
-	"file" => [
-		"home" => "/home/projects/timetracker",
-		"time_file" => $settings['files']['home'] . '/.timesheet'
-	],
-	"mysql" => [
-		"username" => "root",
-		"password" => "",
-		"database" => "timetracker"
-	],
-];
+// Report simple running errors
+error_reporting(E_ERROR | E_WARNING | E_PARSE);
+
+// Reporting E_NOTICE can be good too (to report uninitialized
+// variables or catch variable name misspellings ...)
+// error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
+
+// Report all errors except E_NOTICE
+// This is the default value set in php.ini
+// error_reporting(E_ALL & ~E_NOTICE);
+
+$home = "/home/projects/timetracker";
+$apiurl = "./timetrackerapi.php";
+$time_file = $home . "/.timesheet";
 
 switch($argv[1])
 {
@@ -90,7 +93,34 @@ function summary($verbose = 1)
 
 function add_task()
 {
+	$results = curlpost([
+		"controller" => "",
+		"method" => "",
+		"arguments" => []
+	], "./timetrackerapi.php");
 
+	print_r($results);
+}
+
+function curlpost($postdata, $apiurl)
+{
+
+	// Configure the cURL connection.
+
+	$ch = curl_init($apiurl);
+	curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+	curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
+	curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
+	curl_setopt($ch, CURLOPT_POST, 1);
+	curl_setopt($ch, CURLOPT_POSTFIELDS, $postdata);
+
+	//execute post
+	$result = curl_exec($ch);
+
+	//close connection
+	curl_close($ch);
+
+	return $result;
 }
 
 function get_clients()
@@ -103,7 +133,7 @@ function clear_times($file = '', $confirm = true)
 {
 	if (!$file) // No file given, so use default
 	{
-		$file = $settings['file']['time_file'];
+		$file = $time_file;
 	}
 
 	// Confirm.
@@ -177,7 +207,7 @@ function get_times($file = '')
 {
 	if (!$file) // No file given, so use default
 	{
-		$file = $settings['file']['time_file'];
+		$file = $time_file;
 	}
 
 	if ($in = @file_get_contents($file))
@@ -220,7 +250,7 @@ function set_times($time_data, $file = '')
 {
 	if (!$file) // No file given, so use default
 	{
-		$file = $settings['file']['time_file'];
+		$file = $time_file;
 	}
 
 	if (file_put_contents($file, serialize($time_data)) === false)
